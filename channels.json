@@ -1,0 +1,9 @@
+{
+    "channels": [
+      "https://demo.ce.prod.osaas.io/channels/bitmovindemo/master.m3u8",
+      "https://demo.ce.prod.osaas.io/channels/website/master.m3u8",
+      "https://demo.ce.prod.osaas.io/channels/jonas/master.m3u8",
+      "https://demo.ce.prod.osaas.io/channels/russelcrowe/master.m3u8"
+    ]
+  }
+  

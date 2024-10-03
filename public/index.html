@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90s TV EPG</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #001;
+            color: #00ff00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .epg-container {
+            width: 80%;
+            height: 80%;
+            background-color: #000;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px green;
+        }
+        .video-container {
+            width: 100%;
+            height: 60%;
+            background-color: #111;
+            border: 3px solid #00ff00;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 50%;
+        }
+        button {
+            background-color: #333;
+            color: #00ff00;
+            padding: 10px;
+            border: 1px solid #00ff00;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .channel-list {
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="epg-container">
+        <div class="video-container">
+            <video id="videoPlayer" controls autoplay></video>
+        </div>
+        <div class="controls">
+            <button id="prevBtn">Previous</button>
+            <button id="nextBtn">Next</button>
+        </div>
+        <div class="channel-list">
+            <span id="currentChannelName">Loading channels...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        let channels = [];
+        let currentChannel = 0;
+        const video = document.getElementById('videoPlayer');
+        const currentChannelName = document.getElementById('currentChannelName');
+
+        // Function to load channel list from backend
+        function fetchChannels() {
+            fetch('/api/channels')
+                .then(response => response.json())
+                .then(data => {
+                    channels = data.channels;
+                    loadChannel(currentChannel);
+                })
+                .catch(err => console.error('Error fetching channels:', err));
+        }
+
+        // Function to load the selected channel
+        function loadChannel(channelIndex) {
+            const channelUrl = channels[channelIndex];
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(channelUrl);
+                hls.attachMedia(video);
+                video.play();
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = channelUrl;
+                video.play();
+            }
+            currentChannelName.textContent = `Channel ${channelIndex + 1}`;
+        }
+
+        // Handle channel switching
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            currentChannel = (currentChannel - 1 + channels.length) % channels.length;
+            loadChannel(currentChannel);
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            currentChannel = (currentChannel + 1) % channels.length;
+            loadChannel(currentChannel);
+        });
+
+        // Add keyboard navigation for channel zapping
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                currentChannel = (currentChannel + 1) % channels.length;
+                loadChannel(currentChannel);
+            } else if (event.key === 'ArrowLeft') {
+                currentChannel = (currentChannel - 1 + channels.length) % channels.length;
+                loadChannel(currentChannel);
+            }
+        });
+
+        // Fetch channels when the page loads
+        fetchChannels();
+    </script>
+</body>
+</html>
